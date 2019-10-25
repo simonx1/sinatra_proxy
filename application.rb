@@ -3,6 +3,8 @@ require 'sinatra'
 require 'net/http'
 require 'json'
 
+#require 'byebug'
+
 configure do
   set :show_exceptions, true
 
@@ -12,7 +14,7 @@ end
 
 helpers do
   def get_credentials
-    req = Net::HTTP.get(URI("http://events.chargify.test:3000/#{params['subdomain']}/verify_token/#{@auth_header}"))
+    req = Net::HTTP.get_response(URI("http://events.chargify.test:3000/#{params['subdomain']}/verify_token/#{@auth_header}"))
     if req.code == '200'
       JSON.parse(req.body)['credentials']
     else
