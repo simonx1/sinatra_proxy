@@ -2,8 +2,11 @@
 require 'sinatra'
 require 'net/http'
 require 'json'
+require 'redis-sinatra'
 
 #require 'byebug'
+
+register Sinatra::Cache
 
 configure do
   set :show_exceptions, true
@@ -14,11 +17,13 @@ end
 
 helpers do
   def get_credentials
-    req = Net::HTTP.get_response(URI("http://events.chargify.test:3000/#{params['subdomain']}/verify_token/#{@auth_header}"))
-    if req.code == '200'
-      JSON.parse(req.body)['credentials']
-    else
-      nil
+    settings.cache.fetch("token_#{@auth_header}", expires_in: 86_400) do
+      req = Net::HTTP.get_response(URI("http://events.chargify.test:3000/#{params['subdomain']}/verify_token/#{@auth_header}"))
+      if req.code == '200'
+        JSON.parse(req.body)['credentials']
+      else
+        nil
+      end
     end
   end
 end
